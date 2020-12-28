@@ -1,0 +1,37 @@
+\documentclass[english]{article}
+\usepackage{fullpage}
+\usepackage{setspace}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\input{preamble}
+
+\title{MA4199 Project -- Bias Variance Tradeoff}
+\date{}
+\author{Ng Wei Le}
+
+%\newcommand{\ntrain}{n_{\rm train}}
+%\newcommand{\ntest}{n_{\rm test}}
+\newcommand\norm[1]{\left\lVert#1\right\rVert}
+%\DeclareMathOperator{\Tr}{Tr}
+\onehalfspacing
+
+\begin{document}
+\maketitle
+%Note: The main reference for sections \ref{sec:DimRed} to \ref{sec:mods} is:  \cite{ShalevBen}.\\
+\section{Approximation Theorem} \label{sec:AppThm}
+The below theorem gives us some justification as to why the minimum norm interpolating function was chosen, though this only works under noiseless conditions:
+% Might need to rephrase this part to avoid plag
+\begin{thm} \label{thm:approx}
+	Fix $h^* \in \RKHSGauss $  .
+Let $(x_1,y_1), ..., (x_n,y_n)$ be i.i.d. random variables where $x_i$ drawn randomly from a compact cube $\Omega \subset \mathbb{R}^d $,
+$y_i = h^*(x_i) \: \forall i$. There exists $A, B > 0$ such that for any interpolating $h \in \mathcal{H}_\infty $ with high probability
+\begin{equation*}
+\sup_{x \in \Omega} \vert h(x) - h^*(x)\vert < A e^{-B(n/log \, n)^{1/d}} (\| h^* \|_{\mathcal{H}_\infty} + \| h \|_{\mathcal{H}_\infty})
+\end{equation*}
+\end{thm}
+
+\end{document} 
+
