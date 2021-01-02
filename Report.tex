@@ -5,7 +5,7 @@
 \usepackage{hyperref}
 \usepackage{amssymb}
 \usepackage{amsmath}
-
+\usepackage{mathtools}
 \input{preamble}
 
 \title{MA4199 Project -- Bias Variance Tradeoff}
@@ -22,16 +22,80 @@
 \maketitle
 %Note: The main reference for sections \ref{sec:DimRed} to \ref{sec:mods} is:  \cite{ShalevBen}.\\
 \section{Approximation Theorem} \label{sec:AppThm}
+\begin{defn}
+	The fill distance for a set of points $X = \{x_1, ..., x_N\} \subseteq \Omega$ for a bounded domain $\Omega$ is defined to be
+	\[
+	h_{X,\Omega} \coloneqq \sup_{x \in \Omega}\min_{1 \leq j \leq N} \norm{x- x_j}_2
+	\].
+\end{defn}
 The below theorem gives us some justification as to why the minimum norm interpolating function was chosen, though this only works under noiseless conditions:
 % Might need to rephrase this part to avoid plag
 \begin{thm} \label{thm:approx}
 	Fix $h^* \in \RKHSGauss $  .
-Let $(x_1,y_1), ..., (x_n,y_n)$ be i.i.d. random variables where $x_i$ drawn randomly from a compact cube $\Omega \subset \mathbb{R}^d $,
+Let $(x_1,y_1), ..., (x_n,y_n)$ be i.i.d. random variables where $x_i$ drawn randomly from a compact cube $\Omega \subseteq \mathbb{R}^d $,
 $y_i = h^*(x_i) \: \forall i$. There exists $A, B > 0$ such that for any interpolating $h \in \mathcal{H}_\infty $ with high probability
 \begin{equation*}
 \sup_{x \in \Omega} \vert h(x) - h^*(x)\vert < A e^{-B(n/log \, n)^{1/d}} (\| h^* \|_{\mathcal{H}_\infty} + \| h \|_{\mathcal{H}_\infty})
 \end{equation*}
 \end{thm}
+Theorem 11.22 in \cite{ScatteredDataApproximation}:
+
+Let $\Omega$ be a cube in $\RR^d$. Suppose ... There exists a constant $c > 0$ such that the error between a function $f \in N(\Omega)$ and its interpolant $s_{f,X}$ can be bounded by:
+\begin{equation*}
+\norm{f - s_{f,X}}_{L_\infty(\Omega)} \leq \text{exp}(-c/h_{X,\Omega})|f|_N(\Omega)
+\end{equation*}
+for all data sites X with sufficiently small $h_{X,\Omega}$.
+
+With $h_{X,\Omega}$ as the fill on the order of $O(n/logn)^{-1/d}$ (using the theorem S1 in Belkin's paper which wasn't proved).
+We consider $f(x) := h(x) - h*(x)$. Since $h$ is interpolating, we have $f(x_i) = 0$ for all $x_i$. We then let $s_{f,X}$ be the zero function, since it is an interpolant of $f$. Thus, we have:
+$s_{f,X}$ can be bounded by:
+\[
+\norm{f}_{L_\infty(\Omega)} = \sup_{x \in \Omega} \vert h(x) - h^*(x)\vert <
+\text{exp}(-c(n/log n)^{1/d})|f|_N(\Omega)
+\]
+\[
+\leq \text{exp}(-c(n/log n)^{1/d}) (\| h^* \|_{\RKHSGauss} + \| h \|_{\RKHSGauss})
+\]
+Another form we can have is using proposition 14.1 in \cite{ScatteredDataApproximation}:
+\begin{prop}
+	Let $\Omega \subseteq \RR^d$ be bounded and measurable. Suppose $X = \{x_1, ... , x_N\} \subseteq \Omega$ is quasi-uniform with respect to  $c_{qu} > 0$. Then there exists constants $c_1, c_2 > 0$ depending only on space dimension $d$, on $\Omega$ and on $c_{qu}$ such that:
+	\[c_1N^{-1/d} \leq h_{X,\Omega} \leq c_2N^{-1/d} \].
+\end{prop}
+With the definition of quasi-uniformness being:
+\begin{defn}
+	For the separation distance of $X = \{x_1, ... , x_N\}$ being defined as $q_x \coloneqq \half \min_{i\neq j} \norm{x_i - x_j}_2$.
+\end{defn}
+We can then use the above proposition with $n$ replacing $n/\text{log}n$.
+
+In either case, by choosing a the smallest norm for $h$, we can see that it corresponds to the smallest upperbound for $\vert h(x) - h^*(x)\vert$.
+
+\section{Existing Bounds Provide No Guarantees for Interpolated Kernel Classifiers} \label{sec:BoundsKernel}
+Steps are: 
+\begin{itemize}
+	\item Find lower bound on function norm of t-overfitted classifiers in RKHS corresponding to Gaussian Kernels.
+	\item Show loss for available bounds for kernel methods based on function norm (can perhaps use this to explain approximation theorem as well?)
+\end{itemize}
+Interpolation: 0 regression error. Overfitting: 0 classification error. Interpolation implies overfitting.
+\begin{defn}
+	We say $h \in H$ t-overfits data, if it achieves zero classification loss (overfits) and $\forall_iy_ih(x_i) > t > 0$.
+\end{defn}
+The below shows a theorem on how the function norm changes with respect to t-overfitting.
+\begin{thm}
+	Let $(\xv_i ,y_i)$ be data sampled from $P$ on $\Omega \times \{-1, 1\}$ for $i = 1,..., n$. Assume that $y$ is not a deterministic function of $x$ on a subset of non-zero measure. Then, with high probability, any $h$ that t-overfits the data, satisfies
+	\[\norm{h}_H > Ae^{Bn^{1/d}}\]
+	for some constants $A, B > 0$ depending on $t$.
+\end{thm}
+
+
+\newpage
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\newpage
+{\huge \centering \bf Appendix \par}
+
+\appendix
 
 \end{document} 
+
 
