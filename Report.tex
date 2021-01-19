@@ -91,18 +91,105 @@ We define the $\gamma$-shattering and fat-shattering dimension below:
 	Let F be a set of functions mapping from a domain $X$ to $\RR$. Suppose $S = \{x_1, x_2, ..., x_m\} \subseteq X$.  Suppose also that $\gamma$ is a positive real number. Then $S$ is $\gamma$-shattered by F if there are real
 	numbers $r_1, r_2,..., r_m$, such that for each $b \in \{0, 1\}^m$ there is a function $f_b$ in $F$ with
 	\[
-	f_b(x_i) \geq r_i + \gamma \text{ if } b_i = 1 \text{, and } f_b(x_i) \leq r_i - \gamma \text{ if } b_i = 0 \text{, for } 1 \leq i \leq m
-	\]. We say $r = (r_1, r_2,..., r_m)$ witnesses the shattering.
+	f_b(x_i) \geq r_i + \gamma \text{ if } b_i = 1 \text{, and } f_b(x_i) \leq r_i - \gamma \text{ if } b_i = 0 \text{, for } 1 \leq i \leq m.
+	\] We say $r = (r_1, r_2,..., r_m)$ witnesses the shattering.
 	Suppose that F is a set of functions from a domain $X$ to $\RR$ and that $\gamma > 0$. Then $F$ has $\gamma$-dimension $d$ if $d$ is the maximum	cardinality of a subset $S$ of $X$ that is $\gamma$-shattered by $F$. If no such maximum exists, we say that $F$ has infinite $\gamma$-dimension. The $\gamma$-dimension of $F$ is denoted $fat_F(\gamma)$. This defines a function $fat_F: \RR \rightarrow N \cup \{0,\infty\}$, which we call the fat-shattering dimension of $F$.
 \end{defn}
-Proof. Let $B_R = \{ f \in \mathcal{H}, \norm{f}_\mathcal{H} < R \}$ be a ball of radius $R$ in RKHS $\mathcal{H}$. Suppose the data is $\gamma$-overfitted, \cite{LossFATBound} gives us a high probability of a bound of
+\begin{proof}
+Let $B_R = \{ f \in \mathcal{H}, \norm{f}_\mathcal{H} < R \}$ be a ball of radius $R$ in RKHS $\mathcal{H}$. Suppose the data is $\gamma$-overfitted, \cite{LossFATBound} gives us a high probability of a bound of
 \[ L(f) < O(\frac{\text{ln}(n)^2}{\sqrt{n}}\sqrt{fat_{B_R}(\gamma/8)}) \] for $L(f)$ the expected classification error. Also, from \cite{ApproximationConcentration} we have \[fat_{B_R}(\gamma) < O((log(R/\gamma))^d)\].
 We then have $B_R$ containing no function that $\gamma$ overfits the data unless
 \[(log(R/\gamma))^d > O(n) \implies R > c_1 \text{ exp}(c_2(\frac{n}{\text{ln }n})^{1/d})\]
 for some positive constants $c_1, c_2$.
+\end{proof}
 Classical bounds for kernel methods (\cite{UnderstandKernel} ) are in the form:
 \[ \lvert \frac{1}{n} \sum_{i}l(f(x_i),y_i) - L(f) \rvert \leq C \frac{\norm{f}^a_\mathcal{H}}{n^b}, \hspace{1em} C,a,b \geq 0 \]
 The right side on this will tend to infinity for bigger $\norm{f}_\mathcal{H}$, which is suggested by Theorem \ref{thm:normBound}.
+
+\section{Random Fourier Features} \label{sec:RFFs}
+For a feature map $\phi: \RR^d \rightarrow \RR^{d'}$ the kernel trick allows easy computation for positive definite kernel $k$ where $k(x,y) = <\phi(x), \phi(y)>$. We want to find a randomized feature map $z: \RR^d \rightarrow \RR^{\bar{d}}$ such that 
+\[ k(x,y) = <\phi(x), \phi(y)> \approx <z^{\Trans}(x), z(y)> \].
+As suggested by \cite{RFF_Rahimi}, for a shift-invariant kernel $k$: $k(x, y) = k(x - y)$), we consider the mapping $z(x) = cos(w^{\Trans}x + b)$, where $w$ is drawn from the probability distribution $p$:
+\begin{equation}
+p(w) = \frac{1}{2\pi} \int k(h) ~ \text{exp}(-iw^{\Trans}h) ~ \text{d}h
+\label{eq:probFourier}
+\end{equation} 
+ 
+when we compute the Fourier transform of the kernel $k$, and $b$ is drawn from the uniform distribution on $[0, 2\pi]$.
+
+We know that the fourier transform of $k(\cdot)$ is a probability distribution from Bochner's theorem:
+\begin{thm} \label{thm:Bochner}
+	(Bochner \cite{Rudin_1990}).For a continuous kernel $k(x - y)$  it is a positive definite kernel if and only if $k(\cdot)$ is the fourier transform of a non-negative measure.
+\end{thm}
+We now have:
+\[ k(x - y) = \int_{\RR^d} p(w) \text{exp}(iw^{\Trans}(x - y)) ~ \text{d}w = \EE_w[e^{iw^{\Trans}x}(e^{iw^{\Trans}y})^*] \].
+Therefore, we can use $e^{iw^{\Trans}x}(e^{iw^{\Trans}y})^*$ as an estimate (unbiased) of $k(x, y)$.
+Let $\phi_w(x) = e^{iw^{\Trans}x}$
+We can also use $z_w(x) = \sqrt{2}cos(w^{\Trans}x + b)$ instead of $\phi_w(x)$, as suggested by \cite{RFF_Rahimi}.
+\begin{prop}
+	For $z_w(x) = \sqrt{2}cos(w^{\Trans}x + b)$, where $w$ is drawn from probability distribution $p$ in \eqref{eq:probFourier} and $b$ drawn from a uniform random variable on $[0, 2\pi]$.
+	\[E(z_w(x))z_w(y) = k(x,y)\]
+\end{prop}
+\begin{proof}
+	\begin{equation*}
+	\begin{split}
+		z_w(x) &= 2 ~ \frac{\sqrt{2}}{2}cos(w^{\Trans}x + b) \\
+		&= \frac{1}{\sqrt{2}}~(e^{i(w^{\Trans}x+b)} + e^{-i(w^{\Trans}x+b)}) \\
+		&= \frac{1}{\sqrt{2}}~(\phi_w(x)e^{ib} + \phi_w(x)^* e^{-ib})
+	\end{split}
+	\end{equation*}
+	Where $\phi_w(x) = e^{iw^{\Trans}x}$.
+	\begin{equation*}
+	\begin{split}
+	z_w(x)z_y(y) &= \frac{1}{2}[\phi_w(x)\phi_w(y)e^{i2b} + \phi_w(x)^*\phi_w(y)^*e^{-i2b}
+	 + \phi_w(x)\phi_w(y)^* + \phi_w(x)^*\phi_w(y)] \\
+	\EE[z_w(x)z_y(y)] &= \frac{1}{2}\EE[\phi_w(x)\phi_w(y)e^{i2b} + \phi_w(x)^*\phi_w(y)^*e^{-i2b}]
+	+ \frac{1}{2}\EE[\phi_w(x)\phi_w(y)^*] + \frac{1}{2}\EE[\phi_w(x)^*\phi_w(y)] \\ 
+	\end{split}
+	\end{equation*}
+	As mentioned earlier in Theorem \ref{thm:Bochner}, $\EE_w[\phi_w(x)\phi_w(y)^*] = k(x - y)$.
+	Also $\phi_w(x)\phi_w(y)^* = (\phi_w(x)^*\phi_w(y))^*$.
+	\begin{equation*}
+	\begin{split}
+	\EE[z_w(x)z_y(y)] &= \frac{1}{2}\EE[\phi_w(x)\phi_w(y)e^{i2b} + \phi_w(x)^*\phi_w(y)^*e^{-i2b}]
+	+ \frac{1}{2}k(x-y) + \frac{1}{2}[k(x-y)]^* \\
+	&= \frac{1}{2}\EE[\phi_w(x)\phi_w(y)e^{i2b} + \phi_w(x)^*\phi_w(y)^*e^{-i2b}] + k(x-y)
+	\end{split}
+	\end{equation*}
+	For real kernel , $k(x - y) = (k(x - y))^*$.
+	\begin{equation*}
+	\begin{split}
+	\EE_{w,b}[\phi_w(x)\phi_w(y)e^{i2b}] &= \frac{1}{2\pi}\int_{\RR^d}\int_{0}^{2\pi} p(w)\phi_w(x)\phi_w(y)e^{i2b} \text{d}b~\text{d}w \\
+	&= \frac{1}{2\pi}\int_{\RR^d} p(w)\phi_w(x)\phi_w(y) \int_{0}^{2\pi} e^{i2b} \text{d}b~\text{d}w \\
+	&= 0
+	\end{split}
+	\end{equation*}
+	Since $\int_{0}^{2\pi} e^{i2b} \text{d}b = 0$. Similarly, $	\EE_{w,b}[\phi_w(x)^*\phi_w(y)^*e^{-i2b}] = 0$.
+	\[ \therefore \EE[z_w(x)z_y(y)] = k(x - y). \]
+	
+\end{proof}
+As suggested by \cite{RFF_Rahimi}, the variance of the estimate is decreased by using $z$, a $D$ dimensional vector by concatenating $D$ of $z_w$ and normalizing by a constant $\sqrt{D}$. We let:
+\[z(x) = \sqrt{\frac{2}{D}} [cos(w_1^{\Trans}x + b_1) ... cos(w_D^{\Trans}x + b_D)] \]
+with randomly drawn $w_i$ and $b_i$ as described previously.
+
+
+\begin{thm} \label{thm:RFFnorm}
+	For $N$ the number of random features, and $x_1, x_2, ..., x_n$ the data points, when $N > n$ and as $N$ increases, the norm of the minimizer tends to  the norm of the minimum norm RKHS interpolant.
+\end{thm}
+\begin{proof}
+Let $f(x)$ be the minimum norm RKHS interpolant function for the datapoints. 
+\[f(x) = \sum_{i}\alpha_ik(x_i, x) \approx \sum_{i}\alpha_iz(x_i)^\text{T}z(x) 
+ = \beta^\text{T}z(x) = \hat{f}(x)
+\] (the first equality holds due to Representer Theorem)
+Where $\beta = \sum_{i}\alpha_iz(x_i) $.
+The norm of the function from the random fourier features approximation is:
+\[ \norm{\beta} =   \beta^\text{T} \bar{\beta} = 
+(\sum_{i}\alpha_i z^\text{T}(x_i)) (\sum_{i}\bar{\alpha}_i\bar{z}(x_i)) 
+= \sum_i \sum_j \alpha_i \bar{\alpha}_j z^\text{T}(x_i)\bar{z}(x_j)  
+\approx \sum_i \sum_j \alpha_i \bar{ \alpha_j} k(x_i, x_j)
+= \norm{f}
+\]
+\end{proof}
 \newpage
 \bibliographystyle{plain}
 \bibliography{refs}
