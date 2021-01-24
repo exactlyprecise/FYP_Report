@@ -15,12 +15,63 @@
 %\newcommand{\ntrain}{n_{\rm train}}
 %\newcommand{\ntest}{n_{\rm test}}
 \newcommand\norm[1]{\left\lVert#1\right\rVert}
+\newcommand\inner[1]{\langle#1\rangle}
 %\DeclareMathOperator{\Tr}{Tr}
 \onehalfspacing
 
 \begin{document}
 \maketitle
-%Note: The main reference for sections \ref{sec:DimRed} to \ref{sec:mods} is:  \cite{ShalevBen}.\\
+\section{Reproducing Kernel Hilbert Spaces} \label{sec:RKHS}
+\subsection{Representer Theorem} \label{subsec:RepThm}
+Representer Theorem ensures that the $argmin$ of an empirical risk expression involving a function over an RKHS can be expressed as a linear combination of kernels applied on the training data points as proven in \cite{Representer_Theorem}.
+\begin{thm} \label{thm:Representer}
+	Given a non-empty set $X$, training data $\{(x_1,y_1), ... (x_n,y_n)\} \in X \times \RR$, and RKHS $\mathcal{H}$ be an $\RR$-Hilbert function space over $X$ with reproducing kernel $k:X \times X \rightarrow \RR$. Let $g$ be a strictly increasing function $g:[o, \infty]\rightarrow \RR$, and $l$ be an arbitrary loss function, where $l:(X \times \RR^2)^n \rightarrow \RR \cup \{\infty\}$. \\
+	We want to minimize the following empirical risk term:
+	\[ E(f, (x_1, y_1), ..., (x_n, y_n)) ~ := ~ l((x_1, y_1, f(x_1)), ..., (x_n, y_n, f(x_n))) + g(\norm{f}) .\]
+	For $\hat{f} = argmin_{f \in \mathcal{H}} E(f, (x_1, y_1), ..., (x_n, y_n))$, $\hat{f}$ can be represented in the form:
+	\[ \hat{f}(\cdot) = \sum_{i=1}^{n} a_i k(\cdot, x_i) \]
+	with $a_i \in \RR$ for all $i$.
+\end{thm}
+\begin{proof}
+	First we define a function $\Phi: X \rightarrow \mathcal{H}$ where $\Phi(x)(\cdot) = k(\cdot , x)$. Due to the reproducing property where $\Phi(x)(x') = \inner{\Phi(x), k(\cdot, x')}$, we have:
+	\begin{equation*}
+	\begin{split}
+		\Phi(x)(x') &= k(x', x) \\
+			&= \inner{\Phi(x), k(\cdot, x')} \\
+			&= \inner{\Phi(x), \Phi(x')}. 
+	\end{split}
+	\end{equation*}
+	So $\Phi$ is a feature space of $k$. Using orthogonal decomposition, we decompose $f \in \mathcal{H}$ into a component projected onto the span of ${\Phi(x_i), ..., \Phi(x_n)}$, and the other component orthogonal to this span. We will then prove this orthogonal component is $0$ for any $f$ that reduces the empirical risk  term, hence completing the prove.
+	\[ f = \sum_{i=1}^{n} a_i \Phi(x_i) + \gamma, \]
+	where $\gamma \in \mathcal{H}$, $\inner{\Phi(x_i), \gamma} = 0 \text{ for all } i$.\\
+	Next, applying the reproducing property again,
+	\begin{equation*}
+	\begin{split}
+	f(x_j) &= \inner{f, k(\cdot, x_j)} \\
+	&= \inner{\sum_{i=1}^{n} a_i \Phi(x_i) + \gamma, \Phi(x_j)} \\
+	&= \inner{\sum_{i=1}^{n} a_i \Phi(x_i),  \Phi(x_j)} + \inner{\gamma,  \Phi(x_j)} \\
+	&= \sum_{i=1}^{n} a_i \inner{\Phi(x_i),  \Phi(x_j)}.
+	\end{split}
+	\end{equation*}
+	Now, consider:
+	\begin{equation*}
+	\begin{split}
+	\norm{f}^2 &= \norm{\sum_{i=1}^{n} a_i \Phi(x_i) + \gamma}^2 ~ (\because \text{orthogonality})\\
+	&=  \norm{\sum_{i=1}^{n} a_i \Phi(x_i)}^2 + \norm{\gamma}^2 \\
+	&\geq \norm{\sum_{i=1}^{n} a_i \Phi(x_i)}^2 \\
+	\implies g(\norm{f}) &\geq g(\norm{\sum_{i=1}^{n} a_i \Phi(x_i)})
+	\end{split}
+	\end{equation*}
+	Therefore, if we have $\gamma = 0$, since $f(x_i)$ is unaffected by this for all $i$, 
+	$l((x_1, y_1, f(x_1)), ..., (x_n, y_n, f(x_n)))$ is also unaffected by $\gamma$. For the term $g(\norm{f})$, it decreases if we have $\gamma = 0$. Hence,  $\hat{f} = argmin_{f \in \mathcal{H}} E(f, (x_1, y_1), ..., (x_n, y_n))$, $\hat{f}$ must have $\gamma = 0$, and 
+	\begin{equation*}
+	\begin{split}
+	\hat{f} &= \sum_{i=1}^{n} a_i \Phi(x_i) \\
+		&=  \sum_{i=1}^{n} a_i k(\cdot, x_i)
+	\end{split}
+	\end{equation*}
+\end{proof}
+
 \section{Approximation Theorem} \label{sec:AppThm}
 \begin{defn}
 	The fill distance for a set of points $X = \{x_1, ..., x_N\} \subseteq \Omega$ for a bounded domain $\Omega$ is defined to be
