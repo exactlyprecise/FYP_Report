@@ -21,7 +21,100 @@
 
 \begin{document}
 \maketitle
+\section{Kernels} \label{sec:Kernels}
+Notation: we use the symbol $\KK$  when it can refer to both $\RR$ or $\CC$. Also, let $z^*$ or $(z)^*$ denote the conjugate of $z$ for any $z \in \CC$.
+The sections covering Kernels and reproducing kernel Hilbert spaces are heavily referenced using Steinwart, Christman \cite{steinwartSVM}.
+\begin{defn}
+	For a non-empty set $X$, let $k: X \times X \rightarrow \KK$ be known as a kernel if there exists a function $\phi: X \rightarrow \mathcal{H}$ (known as a feature map of k) where $\mathcal{H}$ is a $\KK$-Hilbert space (known as a feature space of k) such that
+	\begin{equation}
+	k(x_1, x_2) = \inner{\phi(x_2), \phi(x_1)}_\mathcal{H}.
+	\end{equation}
+\end{defn}
+
+\begin{lem}
+	For any kernel $k$ on $X$, $k(x_1, x_2) = k(x_2, x_1)^*$.
+\end{lem}
+\noindent
+From the properties of the inner product, we know that $k(x_1, x_2) = \inner{\phi(x_1), \phi(x_2)}^* = k(x_2, x_1)^*$. Therefore, for kernels on $\RR$, the symmetric property: $k(x_1, x_2) = k(x_2, x_1)$ holds.
+\\\\Below, we define the Gaussian RBF kernel:
+\begin{defn}
+Let the complex Gaussian RBF kernel be:
+\[ k_{\gamma, \CC^d}(z, z') := e^{-\gamma^{-2} \sum_{i=1}^{d} (z_i - z_i'^*)^2 } .\]
+We then define the real Gaussian RBF kernel (or simply the Gaussian RBF kernel for short) as:
+\[ k_\gamma(x, x') = e^{- \gamma^{-2} \norm{x - x'}_2^2} \]
+\end{defn}
+\begin{lem}
+	Let $k_1, k_2$ be kernels on a non-empty set $X$. Then $k_1 + k_2$ and $ak_1, a \in \RR^+ \cup \{0\}$ are kernels. 
+\end{lem}
+
+\begin{defn}
+	For a non-empty set $X$, a function $k: X \times X \rightarrow \RR$ is said to be a positive definite if, for any $m \in \ZZ^+ \cup \{0\}$ and all $x_1, ..., x_n \in X$, we have the following matrix (called the Gram matrix) being positive semi-definite:
+	\[ K := (k(x_i, x_j))_{i,j}. \]
+	Equivalently: for all $a_1, ..., a_n \in \RR$, we have:
+	\[ \sum_{j=1}^{n} \sum_{i=1}^{n} a_j a_i k(x_j, x_i). \]
+\end{defn}
+\begin{defn}
+	The positive definite function $k: X \times X \rightarrow \RR$ is said to be symmetric if  $k(x_1, x_2) = k(x_2, x_1)$ for all $x_1, x_2 \in X$
+\end{defn}
+\begin{thm}
+	A real function $k:X \times X \rightarrow \RR$ is a kernel if and only if $k$ is a positive definite symmetric function (also known as a positive definite kernel).
+\end{thm}
 \section{Reproducing Kernel Hilbert Spaces} \label{sec:RKHS}
+Initially introduced by Stanislaw Zaremba, reproducing kernel Hilbert spaces have many applications in the fields such as Statistical Learning and complex analysis. An RKHS is a $\KK$-Hilbert function space where point evaluation is continuous linear funcitonal.
+\begin{defn}
+	\textbf{(RKHS).} Let $\mathcal{H}$ be a $\KK$-Hilbert space of functions over a non-empty set $X$. $\HH$ is called an RKHS over $X$ if the Dirac function $\delta_x: \HH \rightarrow \KK$ defined as:
+	\[ \delta_x(f) := f(x), ~ x \in X, ~ f \in \HH \] is continuous.
+	Equivalently, there exists $ 0 < M_x < \infty $ such that
+	\[ \delta_x(f) \leq M_x \norm{f}_\mathcal{H}, ~ \text{for all} f \in \HH. \]
+	$\delta_x$ is called a bounded operator on $\HH$.
+\end{defn}
+\noindent
+This is not easy to put into practice, hence the reproducing kernel is defined.
+\begin{defn} \textbf{(Reproducing Kernel).}
+	For a non-empty set $X$ and a function $k : X \times X \rightarrow \KK$ where $k(\cdot, x) \in \HH$ for all $x \in X$ and the following property hold for all $x in X$ and $f \in \HH$:
+	\begin{equation} \label{eqn:ReproducingProp}
+		f(x) = \inner{f, k(\cdot, x)}
+	\end{equation}
+	The condition in equation (\ref{eqn:ReproducingProp}) is also known as the reproducing property.
+\end{defn}
+\begin{defn} \label{def:CanFeatureMaps}
+	\textbf{(Canonical Feature Maps).}
+	Let $\mathcal{H}$ be an RKHS over $X$ with reproducing kernel $k$. Let the function $\Phi: X \rightarrow \mathcal{H}$ be defined such that for all $x \in X$,
+	\[ \Phi(x) = k(\cdot, x). \]
+	We call $\Phi$ the canonical feature map of $k$.
+\end{defn}
+\begin{lem}
+	\textbf{(A reproducing kernel of an RKHS is a kernel).}
+	Let $\mathcal{H}$ be an RKHS over $X$ with reproducing kernel $k$. Then $k$ is a kernel.
+\end{lem}
+\begin{proof}
+	We simply proof that $\Phi$ is a feature map of $k$.
+	\begin{equation*}
+	\begin{split}
+	\inner{\Phi(x_2), \Phi(x_1)} &= \inner{k(\cdot, x_2), k(\cdot, x_1)} \\
+		&=  k(x_1, x_2) ~ (\because \text{Reproducing Property } (\ref{eqn:ReproducingProp}))
+	\end{split}
+	\end{equation*}
+	So $\mathcal{H} is also a feature space of k$.
+\end{proof}
+\begin{lem}
+	Let $\mathcal{H}$ be an $\KK$-Hilbert functional RKHS over $X$ with reproducing kernel $k$. Then $H$ is a Reproducing Kernel Hilbert Space.
+\end{lem}
+\begin{proof}
+	Recall the Dirac functional $\delta_x: H \rightarrow \KK$ where:
+	\[ \delta_x(f) = f(x), ~ x \in X, ~ f \in H. \]
+	Then we have:
+	\begin{equation*}
+	\begin{split}
+		|\delta_x(f)| &= |f(x)| \\
+			&= |\inner{f, k(\cdot, x)}| ~ (\because \text{Reproducing Property }(\ref{eqn:ReproducingProp})) \\
+			&\leq \norm{k(\cdot, x)}_\mathcal{H} \norm{f}_
+			\mathcal{H} ~ (\because \text{Cauchy-Schwarz Inequality}) \\
+	\end{split}
+	\end{equation*}
+	This shows that the Dirac functionals are continuous.
+\end{proof}
+
 \subsection{Representer Theorem} \label{subsec:RepThm}
 Representer Theorem ensures that the $argmin$ of an empirical risk expression involving a function over an RKHS can be expressed as a linear combination of kernels applied on the training data points as proven in \cite{Representer_Theorem}.
 \begin{thm} \label{thm:Representer}
@@ -33,7 +126,7 @@ Representer Theorem ensures that the $argmin$ of an empirical risk expression in
 	with $a_i \in \RR$ for all $i$.
 \end{thm}
 \begin{proof}
-	First we define a function $\Phi: X \rightarrow \mathcal{H}$ where $\Phi(x)(\cdot) = k(\cdot , x)$. Due to the reproducing property where $\Phi(x)(x') = \inner{\Phi(x), k(\cdot, x')}$, we have:
+	First we let $\Phi$ be the canonical feature map of $k$ as defined in \ref{def:CanFeatureMaps}. Recall: function $\Phi: X \rightarrow \mathcal{H}$ where $\Phi(x)(\cdot) = k(\cdot , x)$. Due to the reproducing property where $\Phi(x)(x') = \inner{\Phi(x), k(\cdot, x')}$, we have:
 	\begin{equation*}
 	\begin{split}
 		\Phi(x)(x') &= k(x', x) \\
