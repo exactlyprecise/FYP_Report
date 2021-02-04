@@ -7,8 +7,9 @@
 \usepackage{amsmath}
 \usepackage{mathtools}
 \input{preamble}
+\setlength\parindent{0pt}
 
-\title{MA4199 Project -- Bias Variance Tradeoff}
+\title{MA4199 FYP -- Bias Variance Tradeoff}
 \date{}
 \author{Ng Wei Le}
 
@@ -31,22 +32,22 @@ The sections covering Kernels and reproducing kernel Hilbert spaces are heavily 
 	\end{equation}
 \end{defn}
 
-\begin{lem}
+\begin{lem} \label{lem:kernelSymm}
 	For any kernel $k$ on $X$, $k(x_1, x_2) = k(x_2, x_1)^*$.
 \end{lem}
-\noindent
+
 From the properties of the inner product, we know that $k(x_1, x_2) = \inner{\phi(x_1), \phi(x_2)}^* = k(x_2, x_1)^*$. Therefore, for kernels on $\RR$, the symmetric property: $k(x_1, x_2) = k(x_2, x_1)$ holds.
-\\\\Below, we define the Gaussian RBF kernel:
-\begin{defn}
-Let the complex Gaussian RBF kernel be:
-\[ k_{\gamma, \CC^d}(z, z') := e^{-\gamma^{-2} \sum_{i=1}^{d} (z_i - z_i'^*)^2 } .\]
-We then define the real Gaussian RBF kernel (or simply the Gaussian RBF kernel for short) as:
-\[ k_\gamma(x, x') = e^{- \gamma^{-2} \norm{x - x'}_2^2} \]
-\end{defn}
 \begin{lem}
 	Let $k_1, k_2$ be kernels on a non-empty set $X$. Then $k_1 + k_2$ and $ak_1, a \in \RR^+ \cup \{0\}$ are kernels. 
 \end{lem}
-
+Below, we define the Gaussian RBF kernel:
+\begin{defn}
+	Let the complex Gaussian RBF kernel (on $\CC^d$)be defined as:
+	\[ k_{\gamma, \CC^d}(z, z') := e^{-\gamma^{-2} \sum_{i=1}^{d} (z_i - z_i'^*)^2 } .\]
+	We then define the real Gaussian RBF kernel (or simply the Gaussian RBF kernel for short) acting on $\RR^d$ as:
+	\[ k_\gamma(x, x') = e^{- \gamma^{-2} \norm{x - x'}_2^2} \]
+\end{defn}
+It can be shown (\cite{steinwartSVM}) that the complex and real Gaussian RBF kernels are kernels.
 \begin{defn}
 	For a non-empty set $X$, a function $k: X \times X \rightarrow \RR$ is said to be a positive definite if, for any $m \in \ZZ^+ \cup \{0\}$ and all $x_1, ..., x_n \in X$, we have the following matrix (called the Gram matrix) being positive semi-definite:
 	\[ K := (k(x_i, x_j))_{i,j}. \]
@@ -59,6 +60,41 @@ We then define the real Gaussian RBF kernel (or simply the Gaussian RBF kernel f
 \begin{thm}
 	A real function $k:X \times X \rightarrow \RR$ is a kernel if and only if $k$ is a positive definite symmetric function (also known as a positive definite kernel).
 \end{thm}
+\begin{proof}
+	Suppose k is a kernel. Then there exists some feature map $\Phi: X \rightarrow \HH$.
+	\begin{equation*}
+	\begin{split}
+		\sum_{j=1}^{n} \sum_{i=1}^{n} a_j a_i k(x_j, x_i) &= 
+			\sum_{j=1}^{n} \sum_{i=1}^{n} a_j a_i \inner{\phi(x_i), \phi(x_j)}_\HH \\
+			&= \inner{\sum_{i=1}^{n} a_i \phi(x_i), \sum_{j=1}^{n} a_j \phi(x_j)}_\HH \\
+			&= \norm{\sum_{i=1}^{n} a_i \phi(x_i)} \\
+			&\geq 0.
+	\end{split}
+	\end{equation*}
+	Also, from Lemma \ref{lem:kernelSymm}, we know that the real kernel $k$ is symmetric, proving one side of the theorem. To prove the other side: \\
+	Given $k:X \times X \rightarrow \RR$ a positive definite symmetric function, we prove that $\Phi: X \rightarrow H$ where $x \mapsto k(\cdot, x)$ is a valid feature map for some feature space $H$. First, we define
+	\[ \hat{\HH} := \sum_{i=1}^{n} a_i k(\cdot, x_i), n \in \nonNegInt, a_i \in \RR \text{ for all } i, x_i \in X \text{ for all } i. \]
+	For $f, g \in \hat{\HH}$ where $f = \sum_{i=1}^{n}a_i k(\cdot, x_i)$ and $g = \sum_{j=1}^{m}b_j k(\cdot, y_j)$, we define the inner product as such:\
+	\begin{equation} \label{eqn:innerKernel}
+	\begin{split}
+		\inner{f, g}  &:= \sum_{i=1}^{n} \sum_{j=1}^{m} a_i b_j k(y_j, x_i) \\
+			&= \sum_{j=1}^{m} b_j f(y_j) \\
+			&= \sum_{i=1}^{n} a_ig(x_i) 
+	\end{split}
+	\end{equation}
+	This definition is bilinear and symmetric. \\
+	We also have: $\inner{f, f} = \sum_{i=1}^{n}\sum_{j=1}^{n}a_i a_j k(x_j, x_i) \geq 0 $ since k is a positive definite function. It can be shown that $\inner{\cdot, \cdot}$ follows Cauhy-Schwarz Inequality (\cite{steinwartSVM}), hence we have:
+	\begin{equation*}
+		\begin{split}
+			|f(x)|^2 &= |\sum_{i=1}^{n}a_ik(\cdot, x_i)|^2 \\
+				&= |\inner{f, k(\cdot, x)}|^2 ~ (\because (\ref{eqn:innerKernel}) \text{ with } g = \sum_{j=1}^{m}b_j k(\cdot, y_j) = k(\cdot, x) \text{ with } m=1, b_1 = 1, y_1 = x)\\
+				&\leq \inner{k(\cdot, x), k(\cdot, x)} ~ \inner{f, f}. 
+		\end{split}
+	\end{equation*}
+	Therefore, if $\inner{f, f} = 0$, then $f = 0$, hence showing that $\inner{f, f} > 0$ if and only if $f \neq 0$. Hence, $\inner{\cdot, \cdot}$ defines a proper inner product in $\hat{\HH}$. \\
+	Let $\HH$ be the completion of $\hat{\HH}$ and the map $U: \hat{\HH} \rightarrow \HH$ be the map where $\inner{Ux, Uy}_{\HH} = \inner{x, y}_{\hat{\HH}} $ for all $x, y \in \hat{\HH}$. Then we have, for all $x, x' \in X$:
+	\[ k(x, x') = \inner{k(\cdot, x'), k(\cdot, x)} _{\hat{\HH}} = \inner{Uk(\cdot, x'), Uk(\cdot, x)}_{\HH} \]. Thus we find a feature map of $k$, proving that $k$ is a kernel.
+\end{proof}
 \section{Reproducing Kernel Hilbert Spaces} \label{sec:RKHS}
 Initially introduced by Stanislaw Zaremba, reproducing kernel Hilbert spaces have many applications in the fields such as Statistical Learning and complex analysis. An RKHS is a $\KK$-Hilbert function space where point evaluation is continuous linear funcitonal.
 \begin{defn}
@@ -68,7 +104,7 @@ Initially introduced by Stanislaw Zaremba, reproducing kernel Hilbert spaces hav
 	\[ \delta_x(f) \leq M_x \norm{f}_\mathcal{H}, ~ \text{for all} f \in \HH. \]
 	$\delta_x$ is called a bounded operator on $\HH$.
 \end{defn}
-\noindent
+
 This is not easy to put into practice, hence the reproducing kernel is defined.
 \begin{defn} \textbf{(Reproducing Kernel).}
 	For a non-empty set $X$ and a function $k : X \times X \rightarrow \KK$ where $k(\cdot, x) \in \HH$ for all $x \in X$ and the following property hold for all $x in X$ and $f \in \HH$:
@@ -165,13 +201,122 @@ Representer Theorem ensures that the $argmin$ of an empirical risk expression in
 	\end{equation*}
 \end{proof}
 
-\section{Approximation Theorem} \label{sec:AppThm}
+
+\section{Notations} \label{sec:Notations}
+
+Let $\pi_m(\RR^d)$ be a multivariate polynomial with $d$ variables and degree $\leq m$, i.e. 
+\[ \pi_m(\RR^d) = \{ p(x) = \sum_{k \leq m} c_k x^k \} \] 	
+\\
+Let $C^k(X)$ be the set of functions on $X$ that are $k$ times continuously differentiable. \\
+For a point $x \in \RR^d$, it has the components of its coordinates $\chi_1, .., \chi_d$, whereas we represent $n$ points in $\RR^d$ as $x_1, .., x_n$.\\
+We denote $\NN_0$ as the set of non-negative integers.
+We denote the multi-index vector with its components as $\alpha = (\alpha_1, ..., \alpha_d)^\Trans \in \NN_{0}^{d}$, and $|\alpha| := \norm{\alpha}_1$ For $X \subseteq \RR^d$, $f \in C^k(X)$, $|\alpha| \leq k$ and $x \in \RR^d$, we denote:
+\[ D^\alpha f := \frac{\partial^{|\alpha|}}{\partial\chi_1^{\alpha_1} \cdot\cdot\cdot \partial\chi_d^{\alpha_d}} f \]
+
+We will define the power function, as defined in 11.2 in \cite{ScatteredDataApproximation}:
 \begin{defn}
-	The fill distance for a set of points $X = \{x_1, ..., x_N\} \subseteq \Omega$ for a bounded domain $\Omega$ is defined to be
+	Suppose $X \in \RR^d$ is open, with $k: X \times X \rightarrow \RR$ be a positive definite kernel. For $\alpha \in \NN_0^d$, $\hat{X} = {x_1, x_2, ..., x_n} \subseteq X$ the power function $P^{(\alpha)}_{k,\hat{X}}(x)$ is defined by:
+	\begin{equation*}
+	\begin{split}
+		(P^{(\alpha)}_{k,\hat{X}}(x))^2 &:= D_1^\alpha D_2^\alpha k(x, x) 
+			- 2 \sum_{j=1}^n D^{\alpha}u_j^*(x)D_1^\alpha k(x, x_j) \\
+			&+ \sum_{i,j = 1}^{n} D^\alpha u_i^*(x) D^\alpha u_j^*(x) k(x_i, x_j).
+	\end{split}
+	\end{equation*}
+\end{defn}
+
+\begin{defn}
+	The fill distance (or sometimes referred to as 'fill' for short) for a set of points $X = \{x_1, ..., x_N\} \subseteq \Omega$ for a bounded domain $\Omega$ is defined to be
 	\[
 	h_{X,\Omega} \coloneqq \sup_{x \in \Omega}\min_{1 \leq j \leq N} \norm{x- x_j}_2
 	\].
 \end{defn}
+
+Theorem 11.22 in \cite{ScatteredDataApproximation}:
+\begin{thm} \label{thm:interpolate}
+Let $\Omega$ be a cube in $\RR^d$ and $k = \phi(\norm{\cdot}_2)$ be a positive definite kernel with $f = \phi(\cdot)$ satisfying the condition that there exists, $l_0$ and constant $M > 0$ such that for all $r > 0$ and $l > l_0$, $|f^{(l)}(r)| \leq l!M^l$. Then there exists a constant $c > 0$ such that the error between a function $f \in \RKHSGauss$ and its interpolant $s_{f,X}$ for all data points $X = \{x_1, ..., x_n\}$ can be bounded by:
+\begin{equation*}
+\norm{f - s_{f,X}}_{L_\infty(\Omega)} \leq \text{exp}(-c/h_{X,\Omega})|f|_{\RKHSGauss}
+\end{equation*}
+ with sufficiently small fill $h_{X,\Omega}$.
+\end{thm}
+\begin{proof}
+	From the previous theorem, we have:
+	\[ P^2(x) \leq [1 + c_1(2N)]^2 \norm{f - p}_{L_\infty(G)} \]
+	Where $G$ is on the interval $[0, 4(c_2(2N))^2h^2]$, $x \in \Omega$, $p \in \pi_n(\RR)$, $h = h_{X, \Omega}$.
+	
+	From Theorem TODO: we have for sufficiently small fill distance $\fillDist \leq \frac{c_0}{2n}$, the constants $c_1, c_2$ can be replaced by:
+	\begin{equation*}
+	\begin{split}
+	c_1(2n) &= \exp(2d\gamma_d(2n+1))\\
+	c_2(2n) &= 2c_2n
+	\end{split}
+	\end{equation*}
+	So $G$ is on the interval $[0, 16N^2c_2^2h^2]$
+	For $p$ the Taylor series of $f$ about 0, and up to the term $t^N$, we then have:
+	\begin{equation*}
+	\begin{split}
+		|f(t) - p(t)| &\leq t^{N+1}\frac{|f^{n+1}(t')|}{(n+1)!} \\
+		&\leq M^{N+1}t^{N+1} ~ \text{ (By assumption)} \\
+		\implies \norm{f - p}_{L_\infty(G)} &\leq (M \cdot 16N^2c_2^2h^2)^{N+1} \\
+			&= (C_0 N^2 h^2)^{N+1} ~ \text{ for constant }C_0 = Mc_2^2\\
+	\end{split}
+	\end{equation*}
+	Also, we have:
+	\begin{equation*}
+	\begin{split}
+		[1 + c_1(2N)]^2 &= [1 + \exp(2d\gamma_d(2N + 1))]^2 \\
+			&\leq [2\exp(2d\gamma_d(2N + 1))]^2 \\
+			&= 4\exp(4d\gamma_d(2N + 1)) \\
+			&= \exp(\log 4 + 4d\gamma_d(2N + 1)) \\
+			&\leq \exp(C_1(N+1)) ~ \text{ for sufficiently large }C_1.\\
+	\end{split}
+	\end{equation*}
+	We then have:
+	\begin{equation} \label{eqn:P2bound}
+	\begin{split}
+	P^2_{\Phi, X}(x) &\leq [1 + c_1(2N)]^2 \norm{f - p}_{L_\infty(G)} \\
+		&\leq \exp(C_1(N+1))( C_0 N^2 h^2)^{N+1} \\
+		&= (C_0 N^2 h^2\exp(C_1))^{N+1} \\
+		&= (C_2 N^2 h^2)^{N+1} ~ \text{ for constant }C_2 = C_0\exp(C_1). \\
+	\end{split}
+	\end{equation}
+	For $C_3 = \min(\frac{c_0}{2}, \frac{1}{\sqrt{e C_2}})$, and $N$ such that
+	\[ \frac{C_3}{N+1} \leq h \leq \frac{C_3}{N} \], which gives us:
+	\begin{equation*}
+	\begin{split}
+		h &\leq \frac{c_0}{2N}, \\
+		-(N+1) &\leq -C_3/h, \\
+		N^2h^2 \leq &C_3^2 \leq \frac{1}{eC_2} \\
+		\implies C_2N^2h^2 &\leq  1/e. \\
+	\end{split}
+	\end{equation*}
+	We then have:
+\begin{equation*}
+		P^2_{\Phi, X}(x) \leq e^{-(N+1)} \leq e^{-C_3/h}. 
+\end{equation*}
+Now, using $C= C_3/2$ and $|f(x) - s_{f, X}(x)| \leq P_{\Phi, X}(x) |f|_{\RKHSGauss}$, we have:
+\[ |f(x) - s_{f, X}(x)| \leq e^{-C/\fillDist} |f|_{\RKHSGauss}, \]
+which is what we wanted to prove.
+\end{proof}
+
+\begin{thm}
+	With the same conditions as Theorem \ref{thm:interpolate}, except that $f$ satisfies the stricter condition $|f^{(l)}(r)| \leq M^l$, we can get a better error bound of:
+	\[ \norm{f - s_{f,X}}_{L_\infty(\Omega)} \leq \exp(\frac{c \log(\fillDist)}{\fillDist})\norm{f}_{\RKHSGauss}. \]
+\end{thm}
+\begin{proof}
+	The inequality at \ref{eqn:P2bound} becomes:
+	\[ P^2_{\Phi, X}(x) \leq  \frac{(C_2 N^2 h^2)^{N+1}}{(N+1)!}. \]
+
+Using Stirling's inequality $1/n! \leq (e/n)^n$, we have:
+\[ P^2_{\Phi, X}(x) \leq (eC_2 N h^2)^{N+1}. \]
+Similarly, with $C_3 = \min(\frac{c_0}{2}, \frac{1}{e C_2})$, and $N$ such that
+\[ \frac{C_3}{N+1} \leq h \leq \frac{C_3}{N}, \] we then get \[ eC_2Nh \leq 1, \] which gives us:
+\[ P^2_{\Phi,X}(x) \leq h^{N+1} \leq h^{C_3/h} = e^{C_3 \log h / h}. \]
+Following the steps of the previous theorem then gives us our result.
+\end{proof}
+\section{Approximation Theorem} \label{sec:AppThm}
+
 The below theorem gives us some justification as to why the minimum norm interpolating function was chosen, though this only works under noiseless conditions:
 % Might need to rephrase this part to avoid plag
 \begin{thm} \label{thm:approx}
@@ -182,13 +327,6 @@ $y_i = h^*(x_i) \: \forall i$. There exists $A, B > 0$ such that for any interpo
 \sup_{x \in \Omega} \vert h(x) - h^*(x)\vert < A e^{-B(n/log \, n)^{1/d}} (\| h^* \|_{\mathcal{H}_\infty} + \| h \|_{\mathcal{H}_\infty})
 \end{equation*}
 \end{thm}
-Theorem 11.22 in \cite{ScatteredDataApproximation}:
-
-Let $\Omega$ be a cube in $\RR^d$. Suppose ... There exists a constant $c > 0$ such that the error between a function $f \in N(\Omega)$ and its interpolant $s_{f,X}$ can be bounded by:
-\begin{equation*}
-\norm{f - s_{f,X}}_{L_\infty(\Omega)} \leq \text{exp}(-c/h_{X,\Omega})|f|_N(\Omega)
-\end{equation*}
-for all data sites X with sufficiently small $h_{X,\Omega}$.
 
 With $h_{X,\Omega}$ as the fill on the order of $O(n/logn)^{-1/d}$ (using the theorem S1 in Belkin's paper which wasn't proved).
 We consider $f(x) := h(x) - h*(x)$. Since $h$ is interpolating, we have $f(x_i) = 0$ for all $x_i$. We then let $s_{f,X}$ be the zero function, since it is an interpolant of $f$. Thus, we have:
